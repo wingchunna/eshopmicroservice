@@ -7,12 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Castle.Windsor" Version="5.1.2" />
     <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\BuildingBlocks\Common.Logging\Common.Logging.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Contracts\Contracts.csproj" />
   </ItemGroup>
 
 </Project>
