@@ -1,32 +1,47 @@
+using Common.Logging;
+using Serilog;
+
+
+
+
+
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog(Serilogger.Configure);
 
-// Add services to the container.
+Log.Information("Startng Product API");
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-
-var summaries = new[]
+try
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+   
 
-app.MapGet("/weatherforecast", () =>
+    // Add services to the container.
+
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+    app.UseAuthorization();
+    app.MapControllers();
+    app.Run();
+}catch(Exception ex)
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateTime.Now.AddDays(index),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-});
-
-app.Run();
-
-internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    Log.Fatal(ex, "Unhandle Exception");
 }
+
+finally
+{
+    Log.Information("Shutdown Product API complete");
+    Log.CloseAndFlush();
+}
+
