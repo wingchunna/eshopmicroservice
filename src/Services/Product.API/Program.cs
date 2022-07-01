@@ -1,4 +1,6 @@
-using Common.Logging;
+﻿using Common.Logging;
+using Product.API.Extensions;
+using Product.API.Persistence;
 using Serilog;
 
 
@@ -7,36 +9,45 @@ using Serilog;
 
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Host.UseSerilog(Serilogger.Configure);
+
 
 Log.Information("Startng Product API");
 
 try
 {
-   
+    builder.Host.UseSerilog(Serilogger.Configure);
+    builder.Host.AddAppConfigurations();
 
     // Add services to the container.
-
-    builder.Services.AddControllers();
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+    builder.Services.AddInfrastructure(builder.Configuration);
 
     var app = builder.Build();
+    app.UseInfrastructure();
 
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
 
-    app.UseHttpsRedirection();
-    app.UseAuthorization();
-    app.MapControllers();
+    // Auto migration DB
+    app.MigrateDatabase<ProductContext>(
+        (context, _) =>
+        {
+            ProductContextSeed.SeedProductAsync(context, Log.Logger).Wait();
+        })
+       .Run();
+
+
     app.Run();
 }catch(Exception ex)
 {
-    Log.Fatal(ex, "Unhandle Exception");
+
+    string type = ex.GetType().Name;
+    if (type.Equals("StopTheHostException", StringComparison.Ordinal))
+    {
+        throw;
+    }
+
+    Log.Fatal(ex, $"Unhandled exception: {ex.Message}");
+
+
+
 }
 
 finally
