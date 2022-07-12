@@ -1,3 +1,4 @@
+using Basket.API.Extensions;
 using Common.Logging;
 using Serilog;
 
@@ -13,8 +14,8 @@ Log.Information("Startng Basket API");
 
 try
 {
-
-
+    builder.Host.AddAppConfigurations();
+    builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
     // Add services to the container.
 
     builder.Services.AddControllers();
